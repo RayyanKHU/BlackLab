@@ -39,16 +39,26 @@ public class DesensitizeFilter extends TokenFilter {
 
     @Override
     final public boolean incrementToken() throws IOException {
-        if (input.incrementToken()) {
-            String t = new String(termAtt.buffer(), 0, termAtt.length());
-            if (removeAccents)
-                t = StringUtil.stripAccents(t);
-            if (lowerCase)
-                t = t.toLowerCase();
-            termAtt.copyBuffer(t.toCharArray(), 0, t.length());
-            return true;
+        if (!input.incrementToken()) {
+            return false;
         }
-        return false;
+
+        String t = new String(termAtt.buffer(), 0, termAtt.length());
+        t = processToken(t);
+        // Updated the termAtt object with the desensitized token to accomodate process Token
+        termAtt.setEmpty().append(t);
+        return true;
+    }
+
+    // Added processToken to carry out the accent and lowercase functionality for incrementToken method
+    private String processToken(String token) {
+        if (removeAccents) {
+            token = StringUtil.stripAccents(token);
+        }
+        if (lowerCase) {
+            token = token.toLowerCase();
+        }
+        return token;
     }
 
     @Override
@@ -81,5 +91,4 @@ public class DesensitizeFilter extends TokenFilter {
             return false;
         return true;
     }
-
 }
